@@ -11,13 +11,13 @@ Inputs:
     r: number of subintervals
 """
 function composite_trapezoidal_rule(f, a, b, r)
-    h = (b-a)/r
-    value = (h/2)*(f(b)-f(a))
+    h = (b - a) / r
+    value = (h / 2) * (f(b) - f(a))
     sum = 0
     for i = 1:r-1
-        sum += f(a+i*h)
+        sum += f(a + i * h)
     end
-    return value+h*sum
+    return value + h * sum
 end
 
 """
@@ -33,11 +33,11 @@ Inputs:
 """
 function composite_midpoint_rule(f, a, b, r)
     sum = 0
-    h = (b-a)/r
+    h = (b - a) / r
     for i = 1:r
-        sum += f(a+i*h-h/2) 
+        sum += f(a + i * h - h / 2)
     end
-    return sum*h
+    return sum * h
 end
 
 """
@@ -55,19 +55,19 @@ Inputs:
     r: even number of subintervals
 """
 function composite_simpsons_rule(f, a, b, r)
-    h = (b-a)/r
-    value = f(a)+f(b)
+    h = (b - a) / r
+    value = f(a) + f(b)
     sum1 = 0
     for i = 1:((r/2)-1)
-        sum1 += f(a+(2*i)*h)
+        sum1 += f(a + (2 * i) * h)
     end
     sum2 = 0
-    for i =  1:(r/2)
-        sum2 += f(a+(2*i-1)*h)
+    for i = 1:(r/2)
+        sum2 += f(a + (2 * i - 1) * h)
     end
-    value += 2*sum1
-    value += 4*sum2
-    return (h/3)*value
+    value += 2 * sum1
+    value += 4 * sum2
+    return (h / 3) * value
 end
 
 """
@@ -88,27 +88,29 @@ Returns:
     x: vector containing the nodes which the algorithm used to compute approximate_integral
 """
 function adaptive_simpsons_rule(f, a, b, tol, max_depth)
-    h = b-a
-    c = (a + b)/2
- 
-    a1 = (f(a) + f(b)) * h/2 
-    a2 = (f(a) + 4*f(c) + f(b)) * h/6 
+    h = b - a
+    c = (a + b) / 2
 
-    if abs(a1 - a2) < tol || max_depth == 0
-        return a2, [a,b,c]
+    left = (f(a) + 4 * f((a + c) / 2) + f(c)) * (c - a) / 6
+    right = (f(c) + 4 * f((c + b) / 2) + f(b)) * (b - c) / 6
+    a1 = left + right
+    a2 = (f(a) + 4 * f(c) + f(b)) * h / 6
+
+    if abs(a1 - a2) < 15 * tol || max_depth == 0
+        return a1, [a, b, c]
     end
 
-    int_adapt_left, x_left  = adaptive_simpsons_rule(f, a, c, tol, max_depth - 1)
-    int_adapt_right, x_right = adaptive_simpsons_rule(f, c, b, tol, max_depth-1)
+    int_adapt_left, x_left = adaptive_simpsons_rule(f, a, c, tol / 2, max_depth - 1)
+    int_adapt_right, x_right = adaptive_simpsons_rule(f, c, b, tol / 2, max_depth - 1)
 
-    x = []
-    for element in x_left
-        append!(x, element)
-    end
-    for element in x_right
-        append!(x, element)
-    end
-    return (int_adapt_left+int_adapt_right), x
+    x = vcat(x_left, x_right[2:end])
+    # for element in x_left
+    #     append!(x, element)
+    # end
+    # for element in x_right
+    #     append!(x, element)
+    # end
+    return (int_adapt_left + int_adapt_right), x
 end
 
 

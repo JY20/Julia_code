@@ -91,25 +91,20 @@ function adaptive_simpsons_rule(f, a, b, tol, max_depth)
     h = b - a
     c = (a + b) / 2
 
+    one_simpson = (f(a) + 4 * f(c) + f(b)) * h / 6
+
     left = (f(a) + 4 * f((a + c) / 2) + f(c)) * (c - a) / 6
     right = (f(c) + 4 * f((c + b) / 2) + f(b)) * (b - c) / 6
-    a1 = left + right
-    a2 = (f(a) + 4 * f(c) + f(b)) * h / 6
+    two_simpson = left + right
 
-    if abs(a1 - a2) < 15 * tol || max_depth == 0
-        return a1, [a, b, c]
+    if abs(two_simpson-one_simpson) < 15 * tol || max_depth == 0
+        return (two_simpson+(two_simpson-one_simpson)/15), [a, b, c]
     end
 
     int_adapt_left, x_left = adaptive_simpsons_rule(f, a, c, tol / 2, max_depth - 1)
     int_adapt_right, x_right = adaptive_simpsons_rule(f, c, b, tol / 2, max_depth - 1)
 
     x = vcat(x_left, x_right[2:end])
-    # for element in x_left
-    #     append!(x, element)
-    # end
-    # for element in x_right
-    #     append!(x, element)
-    # end
     return (int_adapt_left + int_adapt_right), x
 end
 

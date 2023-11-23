@@ -125,6 +125,17 @@ Returns:
 
 """
 function newton(x0, P, d, tol, max_iters)
+    iter = 1;
+    x_trace = []
+    x_old = x0;
+    x_new = x_old-f(x_old)/df(x_old);
+    append!(x_trace, x_old)
+    while iter <= max_iter && (norm(F(x))) > tol
+        x_old = x_new;
+        x_new = x_old-f(x_old)/df(x_old);
+        iter += 1;
+        append!(x_trace, x_old)
+    end
     return x_trace
 end
 

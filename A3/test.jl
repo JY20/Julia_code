@@ -1,18 +1,32 @@
-function adaptive_simpsons_rule(f, a, b, tol, max_depth)
-    h = b - a
-    c = (a + b) / 2
+function newton(x0, P, d, tol, max_iters)
+    n = length(x0)
+    x = copy(x0)
+    x_trace = [copy(x)]
 
-    left = (f(a) + 4 * f((a + c) / 2) + f(c)) * (c - a) / 6
-    right = (f(c) + 4 * f((c + b) / 2) + f(b)) * (b - c) / 6
-    a1 = left + right
-    a2 = (f(a) + 4 * f(c) + f(b)) * h / 6
-
-    if max_depth == 0 || abs((a1 - a2)) < 15 * tol
-        return a1, [a, c, b]
-    else
-        left_integral, left_nodes = adaptive_simpsons_rule(f, a, c, tol / 2, max_depth - 1)
-        right_integral, right_nodes = adaptive_simpsons_rule(f, c, b, tol / 2, max_depth - 1)
-        nodes = vcat(left_nodes, right_nodes[2:end])
-        return left_integral + right_integral, nodes
+    function F(x)
+        Fx = zeros(n)
+        for i in 1:n
+            Fx[i] = norm(x - P[:, i]) - d[i]
+        end
+        return Fx
     end
+
+    function jacobian(x)
+        J = zeros(n, n)
+        for i in 1:n
+            for j in 1:n
+                J[i, j] = (x[j] - P[j, i]) / norm(x - P[:, i])
+            end
+        end
+        return J
+    end
+
+    iter = 0
+    while norm(F(x)) > tol && iter < max_iters
+        Δx = -jacobian(x) \ F(x)
+        x += Δx
+        push!(x_trace, copy(x))
+        iter += 1
+    end
+    return x_trace
 end

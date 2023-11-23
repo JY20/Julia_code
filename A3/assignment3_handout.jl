@@ -97,8 +97,8 @@ function adaptive_simpsons_rule(f, a, b, tol, max_depth)
     right = (f(c) + 4 * f((c + b) / 2) + f(b)) * (b - c) / 6
     two_simpson = left + right
 
-    if abs(two_simpson-one_simpson) < 15 * tol || max_depth == 0
-        return (two_simpson+(two_simpson-one_simpson)/15), [a, b, c]
+    if abs(two_simpson - one_simpson) < 15 * tol || max_depth == 0
+        return (two_simpson + (two_simpson - one_simpson) / 15), [a, b, c]
     end
 
     int_adapt_left, x_left = adaptive_simpsons_rule(f, a, c, tol / 2, max_depth - 1)
@@ -125,16 +125,36 @@ Returns:
 
 """
 function newton(x0, P, d, tol, max_iters)
-    iter = 1;
+    iter = 1
     x_trace = []
-    x_old = x0;
-    x_new = x_old-f(x_old)/df(x_old);
-    append!(x_trace, x_old)
-    while iter <= max_iter && (norm(F(x))) > tol
-        x_old = x_new;
-        x_new = x_old-f(x_old)/df(x_old);
-        iter += 1;
-        append!(x_trace, x_old)
+    n = length(x0)
+
+    function F(x)
+        Fx = zeros(n, n)
+        for i in 1:n
+            Fx[i] = norm(x - P[:, i]) - d[i]
+        end
+        return Fx
+    end
+
+    function J(x)
+        Jx = zeros(n, n)
+        for i in 1:n
+            for j in 1:n
+                Jx[i, j] = (x[j] - P[j, i]) / norm(x - P[:, i])
+            end
+        end
+        return Jx
+    end
+
+    x = copy(x0)
+    append!(x_trace, x)
+    while iter <= max_iters && (norm(F(x))) > tol
+        dx = -J(x) \ F(x)
+        # x += dx
+        print(dx)
+        iter += 1
+        append!(x_trace, x)
     end
     return x_trace
 end

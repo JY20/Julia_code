@@ -1,6 +1,8 @@
 using Plots
+using LinearAlgebra
 
 include("assignment3_handout.jl")
+# include("test2.jl")
 
 # Fixed 2D anchor positions
 P = [0.0 0.0 100.0 100.0;
@@ -39,9 +41,11 @@ end
 # Create a modified cost function for ease of 2D plotting
 f_plot(x1, x2) = f([x1; x2], P, d)
 z1 = @. f_plot(X1', X2)
-contourf(X1, X2, log10.(z1), fill=true, color=:turbo,
+p8 =  contourf(X1, X2, log10.(z1), fill=true, color=:turbo,
          lw=0.0, aspect_ratio=:equal, legend=:bottomleft)
-plot!(x1, x2, label="Newton Iterations", marker=:o, color=:white)
+plot!(x1, x2, label="Newton Iterations", marker=:o, color=:green)
 scatter!([x_gt[1]], [x_gt[2]], label="Ground Truth", marker=:x, color=:red, markersize=9)
 scatter!(P[1, :], P[2, :], label="Beacons")
 title!("log10 of Cost")
+
+savefig(p8, "p8.png")

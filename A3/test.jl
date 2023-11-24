@@ -1,7 +1,7 @@
 function newton(x0, P, d, tol, max_iters)
+    iter = 1
+    x_trace = []
     n = length(x0)
-    x = copy(x0)
-    x_trace = [copy(x)]
 
     function F(x)
         Fx = zeros(n)
@@ -11,22 +11,31 @@ function newton(x0, P, d, tol, max_iters)
         return Fx
     end
 
-    function jacobian(x)
-        J = zeros(n, n)
+    function J(x)
+        Jx = zeros(n, n)
         for i in 1:n
             for j in 1:n
-                J[i, j] = (x[j] - P[j, i]) / norm(x - P[:, i])
+                Jx[i, j] = (x[j] - P[j, i]) / norm(x - P[:, i])
             end
         end
-        return J
+        return Jx
     end
 
-    iter = 0
-    while norm(F(x)) > tol && iter < max_iters
-        Δx = -jacobian(x) \ F(x)
-        x += Δx
-        push!(x_trace, copy(x))
+    x = copy(x0)
+    x_trace = [copy(x)]
+    while iter <= max_iters && norm(F(x)) > tol
+        dx = J(x) \ F(x)
+        x = x - dx
+        # print(dx)
         iter += 1
+        push!(x_trace, copy(x))
     end
     return x_trace
+    # while norm(F(x)) > tol && iter < max_iters
+    #     dx = J(x) \ F(x)
+    #     x = x - dx
+    #     push!(x_trace, copy(x))
+    #     iter += 1
+    # end
+    # return x_trace
 end

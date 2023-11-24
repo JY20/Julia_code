@@ -130,7 +130,7 @@ function newton(x0, P, d, tol, max_iters)
     n = length(x0)
 
     function F(x)
-        Fx = zeros(n, n)
+        Fx = zeros(n)
         for i in 1:n
             Fx[i] = norm(x - P[:, i]) - d[i]
         end
@@ -147,14 +147,13 @@ function newton(x0, P, d, tol, max_iters)
         return Jx
     end
 
-    x = copy(x0)
-    append!(x_trace, x)
-    while iter <= max_iters && (norm(F(x))) > tol
-        dx = -J(x) \ F(x)
-        # x += dx
-        print(dx)
+    x = x0
+    x_trace = [x]
+    while iter <= max_iters && norm(F(x)) > tol
+        dx = J(x) \ F(x)
+        x = x - dx
         iter += 1
-        append!(x_trace, x)
+        push!(x_trace, x)
     end
     return x_trace
 end
@@ -176,5 +175,45 @@ Returns:
 
 """
 function newton_optimizer(x0, P, d, tol, max_iters)
+    iter = 1
+    x_trace = []
+    m, n = size(P)
+    n = length(x0)
+
+    function gradient(x)
+        g = zeros(m)
+        for i in 1:m
+            sum = 0
+            for j in 1:n
+                sum += ((x[j] - P[j, i])/(norm(x - P[:, i])))*(norm(x - P[:, i]) - d[j])
+            end
+            g[i] = 2*sum
+        end
+        return g
+    end
+
+    function J(x)
+        Jx = zeros(m, n)
+        for i in 1:m
+            for j in 1:n
+                Jx[i, j] = (x[j] - P[j, i]) / norm(x - P[:, i])
+            end
+        end
+        return Jx
+    end
+
+    function hessian(x)
+        h = J(gradient(x))
+        return h
+    end
+
+    x = x0
+    x_trace = [x]
+    while iter <= max_iters && norm(gradient(x)) > tol
+        dx = inv(hessian(x))*gradient(x) 
+        x = x - dx
+        iter += 1
+        push!(x_trace, x)
+    end
     return x_trace
 end

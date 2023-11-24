@@ -1,3 +1,45 @@
+x_trace = [x0]
+xi = x0
+for iter = 1:max_iters
+    n = length(xi)
+    m = length(P[1])
+    grad = zeros(n)
+    hess = zeros(n, n)
+    for i = 1:n
+        grad[i] = 0
+        for k = 1:m
+            norm_vec = norm(xi .- P[:, k])
+            grad[i] += (xi[i] - P[i, k]) * (1 - d[k] * norm_vec^-1)
+        end
+        grad[i] *= 2
+    end
+    for i = 1:n
+        for j = 1:n
+            hess[i, j] = 0
+            if i == j
+                for k = 1:m
+                    norm_vec = norm(xi .- P[:, k])
+                    hess[i, j] += 1 - d[k] * norm_vec^-1 + (xi[i] - P[i, k]) * (d[k] * (xi[i] - P[i, k]) * norm_vec^-3)
+                end
+                hess[i, j] *= 2
+            else
+                for k = 1:m
+                    norm_vec = norm(xi .- P[:, k])
+                    hess[i, j] += (xi[i] - P[i, k]) * (d[k] * (xi[j] - P[j, k]) * norm_vec^-3)
+                end
+                hess[i, j] *= 2
+            end
+        end
+    end
+    xi = xi - inv(hess) * grad
+    push!(x_trace, xi)
+    error = norm(grad)
+    if error <= tol
+        return x_trace
+    end
+end
+return x_trace
+
 
 """
 Compute the integral ∫f(x)dx over [a, b] with the composite trapezoidal 
@@ -130,7 +172,7 @@ function newton(x0, P, d, tol, max_iters)
     n = length(x0)
 
     function F(x)
-        Fx = zeros(n)
+        Fx = zeros(n, n)
         for i in 1:n
             Fx[i] = norm(x - P[:, i]) - d[i]
         end
@@ -147,13 +189,14 @@ function newton(x0, P, d, tol, max_iters)
         return Jx
     end
 
-    x = x0
-    x_trace = [x]
-    while iter <= max_iters && norm(F(x)) > tol
-        dx = J(x) \ F(x)
-        x = x - dx
+    x = copy(x0)
+    append!(x_trace, x)
+    while iter <= max_iters && (norm(F(x))) > tol
+        dx = -J(x) \ F(x)
+        # x += dx
+        print(dx)
         iter += 1
-        push!(x_trace, x)
+        append!(x_trace, x)
     end
     return x_trace
 end
@@ -220,9 +263,9 @@ function newton_optimizer(x0, P, d, tol, max_iters)
         iter += 1
         push!(x_trace, x)
     end
+
     println("Numerical Evidence of part a")
     println(norm(gradient(x)))
-    println(tol)
     println(norm(gradient(x)) <= tol)
     println("Numerical Evidence of part b")
     value = eigvals(hessian(x))

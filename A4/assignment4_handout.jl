@@ -15,6 +15,21 @@ Outputs:
     v: the estimate of the normalized eigenvector corresponding to λ
 """
 function power_method_symmetric(A, tol)
+    # Applying the power method to real symmetric matrices
+    max_iter = 20000
+    iter = 1
+
+    n = size(A,1)
+    v = rand(n)
+    λ = 0
+    r = A*v-λ*v
+    while iter < max_iter && norm(r)/norm(v) > tol #Bauer-Fike Therorem
+        v = A*v
+        v = v/norm(v)
+        λ = transpose(v)*A*v
+        r = A*v-λ*v
+        iter += 1
+    end
     return λ, v
 end
 
@@ -37,5 +52,34 @@ Outputs:
        the input edges. 
 """
 function page_rank(edges, tol)
+    # Applying page rank algorithm
+    max_iter = 20000
+    iter = 1
+
+    n = maximum(edges)
+    P = zeros(n, n)
+
+    for edge in eachrow(edges)
+        P[edge[2], edge[1]] += 1
+    end
+
+    for j in 1:n
+        if sum(P[:, j]) == 0
+            P[:, j] .= 1 / n
+        else
+            P[:, j] ./= sum(P[:, j])
+        end
+    end
+    
+    v=rand(n) 
+    v ./= sum(v)
+
+    new_v = P*v
+    while iter < max_iter && norm(new_v- v, 1) > tol
+        v = new_v
+        new_v = P*v
+        new_v ./= sum(new_v)
+        iter += 1
+    end
     return v
 end

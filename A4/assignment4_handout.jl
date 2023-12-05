@@ -81,5 +81,12 @@ function page_rank(edges, tol)
         new_v ./= sum(new_v)
         iter += 1
     end
+    
+    for i in 1:n
+        if sum(P[i, :]) == 0
+            v[i] = 1 / n
+        end
+    end
+
     return v
 end

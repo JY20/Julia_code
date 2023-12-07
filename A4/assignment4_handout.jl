@@ -88,5 +88,11 @@ function page_rank(edges, tol)
         end
     end
 
+    # For 3a) top 5 and bottom 5 vertices values
+    top_5 = v[partialsortperm(v, 1:5, rev=true)]
+    bottom_5 = v[partialsortperm(v, 1:5)]
+    println("Top 5 Vertices: ", top_5)
+    println("Bottom 5 Vertices: ", bottom_5)
+
     return v
 end
